@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html ng-app="myApp" ng-controller="myCtrl">
+<head>
+<meta name="description" content="Yona Charges calc" />
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.7/angular.min.js"></script>
+  <script src="js/calc.js"></script>
+  <link rel="stylesheet" href="css/calc.css" />
+<meta charset=utf-8 />
+<title>Charges calculator</title>
+</head>
+<body>
+  <h1>Portfolio Management Charges</h1>
+  <button ng-click="save()">save</button>
+  <button ng-click="restore()">restore</button>
+  <button ng-click="reset()">reset</button>
+  <div id="summaries">
+  <div id="input">
+    <h1>Input</h1>
+<ul>
+  <li>Total portfolio value:<input ng-trim='false' type="text" ng-model="input.model.portfolioValue" valid-int/></li>
+  <li>Management Charge<input ng-trim='false' type="text" ng-model="input.model.mngPercent" valid-2dp/>%</li>
+    </ul>
+    </div>
+
+   <div id="results">
+     <h1>Results</h1>
+	<ul>
+      <li>Total annual management charge: {{totalMng | currency:"&#8362;"}}</li>
+	<li>Total annual management percentage: {{percentageMng | percentage}}</li>
+	<li>Percentage of mutual funds: {{percentageMutual | percentage}}</li>
+	<li>Portfolio value excluding mutual funds: {{valueExclMutual | currency:"&#8362;"}}</li>
+	<li>Annual charge:{{annualCharge | currency:"&#8362;"}}</li>
+	<li>Percentage of management charge on mutual funds: {{mngChargeMutual | percentage}}</li>
+   </ul>
+ </div>
+  <div id="myFunds">Mutual funds in portfolio:
+  <table>
+	<tr><th>Num</th><th>Name</th><th>Value</th><th>Mng charge %</th><th>Yearly total</th><th>additional</th><th>Class 1</th><th>Class 2</th><th/></tr>
+	<tr ng-repeat="fund in myFunds">
+	<td>{{fund.num}}</td>
+	<td>{{fund.name}}</td>
+	<td>{{fund.value | noFractionCurrency:"&#8362;"}}</td>
+	<td>{{fund.mngPercent | percentage}}</td>
+	<td>{{fund.yearlyMng | currency:"&#8362;"}}</td>
+	<td>{{fund.additional}}</td>
+	<td>{{fund.class1}}</td>
+	<td>{{fund.class2}}</td>
+      <td><button ng-click="removeFund(fund.num)">remove</button>
+	</tr>
+	<!--<tr>
+	<td><select ng-model="newFundData" ng-options="fund.num +' - '+ fund.name for fund in allFunds">
+      <option value="">-- choose fund --</option></select></td>
+	<td>{{newFundData.name}}</td>
+      <td><input ng-model="newFundValue"/></td>
+      <td><a href ng-click="addNewFund(newFundData,newFundValue)">Add</a></td>
+	<td>{{fund.yearlyMng}}</td>
+	<td>{{fund.additional}}</td>
+	<td>{{fund.class1}}</td>
+	<td>{{fund.class2}}</td>
+	</tr>-->
+    <tr ng-show="myFunds"><th>Total</th><th></th><th>{{totalValue | noFractionCurrency:"&#8362;"}}</th><th></th><th>{{totalYearlyMng | currency:"&#8362;"}}</th></tr>
+  </table>
+    </div>
+  </div>
+  <div id="addFunds">
+    <h2 ng-click="showAddFundList = !showAddFundList">+ Choose a fund</h2>
+    <div id="addFundList" ng-show="showAddFundList">
+      
+      <table>
+	<tr><th>Num</th><th>Name</th><th>Class 1</th><th>Class 2</th></tr>
+        <tr><th><input ng-model="search.num"></th><th><input ng-model="search.name"></th><th><input ng-model="search.class1"></th><th><input ng-model="search.class2"></th><th><button ng-click="search=null">Reset filter</button></tr>
+	<tr ng-repeat="fund in allFunds | filter: search">
+	<td>{{fund.num}}</td>
+	<td>{{fund.name}}</td>
+	<td>{{fund.class1}}</td>
+	<td>{{fund.class2}}</td>
+      <td><button ng-click="openPopup(fund.num)">Add</button></td>
+	</tr>
+      </table>
+    </div>
+  <div id="addFundPopup" ng-show="addFundPopup">
+    <h1>Add new fund</h1>
+    <ul>
+      <li>Num: {{newFundData.num}}</li>
+      <li>Name: {{newFundData.name}}</li>
+      <li>Classification: {{newFundData.class1}}</li>
+      <li>Sub-classification:{{newFundData.class2}}</li>
+      <li>Value: <input id="newValue" ng-model="newFundValue" valid-int focus-on="addFundPopup"/></li>
+      <button ng-disabled="!newFundValue" ng-click="addNewFund(newFundData,newFundValue)">OK</button><button ng-click="closePopup()">Cancel</button>
+    </ul>
+  </div>
+  </div>
+
+
+</body>
+</html>
