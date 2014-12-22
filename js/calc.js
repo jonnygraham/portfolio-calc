@@ -1,19 +1,7 @@
 ﻿var app = angular.module('myApp', []);
 
 
-var allFunds = [
-  {num:5117049, name:'איביאי 00 בונד צמודות יתר', class1:'', class2:'', mng1:0.5, mng2:0.04},
-  {num:5117023, name:'איביאי 00 תל בונד צמודות', class1:'', class2:'', mng1:0.5, mng2:0.04},
-  {num:5116876, name:'ילין לפידות 1D ! 5 כוכבים', class1:'אגד חוץ', class2:'אגד חוץ אג"ח', mng1:0.7, mng2:0.05},
-  {num:5115530, name:'מגדל 1D ! א.חוץ דינמי נק$', class1:'אגד חוץ', class2:'אגד חוץ אג"ח', mng1:0.4, mng2:0.05},
-  {num:5111125, name:'מיטב 1D א.חוץ נקוב ב-$', class1:'אגד חוץ', class2:'אגד חוץ אג"ח', mng1:0.82, mng2:0.05},
-  {num:5115506, name:'סיגמא 1D ! אגד חוץ', class1:'אגד חוץ', class2:'אגד חוץ אג"ח', mng1:1.04, mng2:0.1},
-  {num:5102363, name:'פסגות 1B ! א.חוץ פקדונ שח', class1:'אגד חוץ', class2:'אגד חוץ אג"ח', mng1:0.75, mng2:0.04},
-  {num:5114210, name:'פסגות 1D ! א.חוץ פקדונו $', class1:'אגד חוץ', class2:'אגד חוץ אג"ח', mng1:0.72, mng2:0.04},
-  {num:5114772, name:'דש 2A ! א.חוץ פלטינו נקוב', class1:'אגד חוץ', class2:'אגד חוץ אג"ח', mng1:0.65, mng2:0.05},
-  {num:5105853, name:'דש 2D ! א.חוץ פלטינ נקוב$', class1:'אגד חוץ', class2:'אגד חוץ אג"ח', mng1:0.65, mng2:0.05},
-  {num:5114079, name:'מיטב 2D ! אגד חוץ +20', class1:'אגד חוץ', class2:'אגד חוץ אג"ח', mng1:0.62, mng2:0.065}
-];
+
 
 /* $http ajax calls really belongs in a service, 
 but I'll be using them inside the controller for this demo */ 
@@ -97,7 +85,9 @@ app.factory('inputService', ['$rootScope', function ($rootScope) {
         },
 
         RestoreState: function () {
-            service.model = angular.fromJson(localStorage.inputService);
+            var storedModel = localStorage.inputService;
+            if (storedModel === null) service.ResetState
+            else service.model = angular.fromJson(localStorage.inputService);
         },
         ResetState: function () {
 
@@ -113,8 +103,10 @@ app.factory('inputService', ['$rootScope', function ($rootScope) {
 
     return service;
 }]);
-
-app.controller('myCtrl', function($scope, $http,$rootScope, inputService) {
+app.factory('fundsService', function($http) {
+    return $http.get('data/funds.json');
+});
+app.controller('myCtrl', function($scope, $http,$rootScope, inputService, fundsService) {
   $scope.input = inputService;
   $scope.showAddFundList = true;
   $scope.save = function() {
@@ -126,8 +118,14 @@ app.controller('myCtrl', function($scope, $http,$rootScope, inputService) {
   $scope.reset = function() {
     $rootScope.$broadcast('resetstate');
   };
-  $scope.allFunds = allFunds;
-
+//  $scope.$scope.allFunds = $scope.allFunds;
+  $scope.allFunds = [];
+  fundsService.success(function (data) {
+     $scope.allFunds = data;
+  });
+  fundsService.error(function (data) {
+    alert("Error loading fund data!");
+  });
   $scope.addNewFund = function(fundData,value) {
     
     $scope.input.model.funds.push({num:fundData.num,value:parseFloat(value)});
@@ -144,7 +142,7 @@ app.controller('myCtrl', function($scope, $http,$rootScope, inputService) {
   };
   
   $scope.openPopup = function(fundNum) {
-    $scope.newFundData = getFundByNum(allFunds,fundNum);
+    $scope.newFundData = getFundByNum($scope.allFunds,fundNum);
     $scope.addFundPopup=true;
   };
   $scope.closePopup = function() {
@@ -161,7 +159,7 @@ app.controller('myCtrl', function($scope, $http,$rootScope, inputService) {
   $scope.onInputUpdate = function() {
   $scope.myFunds = [];
   angular.forEach($scope.input.model.funds, function(fund, i) {
-    var fundData = getFundByNum(allFunds,fund.num);
+    var fundData = getFundByNum($scope.allFunds,fund.num);
     // TODO: Handle NULL
     var myFund = angular.copy(fundData);
     myFund.mngPercent = (myFund.mng1 + myFund.mng2) / 100;
